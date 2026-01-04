@@ -2,68 +2,61 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Input Data Nomor</title>
+<title>Input Nomor</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  margin: 0;
-  padding: 0;
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f4f6f8;
+  margin:0;
 }
-.container {
-  max-width: 420px;
-  margin: 60px auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.1);
+.container{
+  max-width:420px;
+  margin:60px auto;
+  background:#fff;
+  padding:25px;
+  border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.1);
 }
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
+h2{text-align:center;margin-bottom:20px}
+input{
+  width:100%;
+  padding:14px;
+  font-size:16px;
+  border-radius:8px;
+  border:1px solid #ddd;
 }
-input {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+button{
+  width:100%;
+  padding:14px;
+  margin-top:12px;
+  border:none;
+  border-radius:8px;
+  background:#2563eb;
+  color:#fff;
+  font-size:16px;
+  cursor:pointer;
 }
-button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 12px;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:20px;
 }
-button:disabled {
-  opacity: .6;
+.card{
+  background:#f1f5f9;
+  padding:10px;
+  border-radius:8px;
+  text-align:center;
 }
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 10px;
-  margin-top: 20px;
+.msg{
+  margin-top:15px;
+  text-align:center;
+  font-weight:bold;
 }
-.card {
-  background: #f1f5f9;
-  padding: 10px;
-  border-radius: 8px;
-  text-align: center;
-}
-.msg {
-  margin-top: 15px;
-  text-align: center;
-  font-weight: bold;
-}
-.success { color: green; }
-.error { color: red; }
-.warn { color: orange; }
+.success{color:green}
+.warn{color:orange}
+.error{color:red}
 </style>
 </head>
 <body>
@@ -71,73 +64,60 @@ button:disabled {
 <div class="container">
   <h2>Input Nomor</h2>
 
-  <input id="nomor" placeholder="Masukkan nomor / data" />
+  <input id="nomor" placeholder="Masukkan nomor / data">
   <button onclick="kirim()">Simpan</button>
 
   <div class="msg" id="msg"></div>
 
   <div class="stats">
-    <div class="card">
-      <div>Total</div>
-      <b id="total">0</b>
-    </div>
-    <div class="card">
-      <div>Hari Ini</div>
-      <b id="today">0</b>
-    </div>
-    <div class="card">
-      <div>Kemarin</div>
-      <b id="yesterday">0</b>
-    </div>
+    <div class="card"><div>Total</div><b id="total">0</b></div>
+    <div class="card"><div>Hari Ini</div><b id="today">0</b></div>
+    <div class="card"><div>Kemarin</div><b id="yesterday">0</b></div>
   </div>
 </div>
 
+<!-- FORM POST (ANTI CORS) -->
+<form id="form" method="POST" target="hiddenFrame"
+      action="https://script.google.com/macros/s/AKfycbxgt4lLkFF7zi3DrM21I7YRQxeFb9MQMlN-Ljrb886vsuM_-HlWSNC0au1xW5_aqfJL/exec">
+  <input type="hidden" name="nomor" id="nomorHidden">
+</form>
+<iframe name="hiddenFrame" style="display:none"></iframe>
+
 <script>
-const API = "https://script.google.com/macros/s/AKfycbx20nkBEZ3hsq-aOqEczC3O6DNnf-urFMHwhaGdsip2VhOoR5Kl6DV0tkNMwzd_S4Ya/exec";
+const API = "PASTE_URL_EXEC_DI_SINI";
 
-function updateStats(data) {
-  total.textContent = data.total;
-  today.textContent = data.today;
-  yesterday.textContent = data.yesterday;
+function updateStats(d){
+  total.textContent = d.total ?? 0;
+  today.textContent = d.today ?? 0;
+  yesterday.textContent = d.yesterday ?? 0;
 }
 
-function kirim() {
-  const nomor = document.getElementById("nomor").value.trim();
-  if (!nomor) return alert("Data kosong");
+function kirim(){
+  const v = nomor.value.trim();
+  if(!v){
+    msg.textContent="Data kosong";
+    msg.className="msg error";
+    return;
+  }
 
-  msg.textContent = "Mengirim...";
-  msg.className = "msg";
+  nomorHidden.value = v;
+  form.submit();
 
-  fetch(API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nomor })
-  })
-  .then(r => r.json())
-  .then(d => {
-    updateStats(d);
-    if (d.status === "success") {
-      msg.textContent = "Data berhasil disimpan";
-      msg.classList.add("success");
-      nomor.value = "";
-    } else if (d.status === "duplicate") {
-      msg.textContent = "Nomor sudah ada";
-      msg.classList.add("warn");
-    } else {
-      msg.textContent = d.message || "Gagal";
-      msg.classList.add("error");
-    }
-  })
-  .catch(() => {
-    msg.textContent = "Gagal koneksi";
-    msg.classList.add("error");
-  });
+  msg.textContent="Data terkirim";
+  msg.className="msg success";
+  nomor.value="";
+
+  setTimeout(loadStats,800);
 }
 
-// load statistik awal
-fetch(API)
-  .then(r=>r.json())
-  .then(updateStats);
+function loadStats(){
+  fetch(API)
+    .then(r=>r.json())
+    .then(updateStats)
+    .catch(()=>{});
+}
+
+loadStats();
 </script>
 
 </body>
